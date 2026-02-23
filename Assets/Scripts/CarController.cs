@@ -1,13 +1,19 @@
+using System;
 using UnityEngine;
 
 public class CarController : MonoBehaviour
 {
-    [Header("Setting")]
+    [Header("Movement Setting")]
     [SerializeField] private float moveSpeed = 50f;
     [SerializeField] private float turnSpeed = 100f;
     [SerializeField] private float groundDrag = 3f;
     [SerializeField] private float airDrag = 0.1f;
     [SerializeField] private float gravityForce = 10f;
+    [Header("Drift Setting")]
+    [SerializeField] private float steerForce = 50f;
+    [SerializeField] private float driftSlipAngle = 30f;
+    private bool isDrifting = false;
+    private float driftDirection = 0;
     [Header("References")]
     [SerializeField] private Transform carModel;
     [SerializeField] private LayerMask groundLayer;
@@ -20,27 +26,58 @@ public class CarController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        moveInput = Input.GetAxis("Vertical");
-        turnInput = Input.GetAxis("Horizontal");
-
-        // 2. Xử lý Visual: Xoay mô hình xe theo hướng rẽ
-        // Lưu ý: Chúng ta chỉ xoay model, còn khối cầu vật lý vẫn giữ nguyên hướng rotation để ổn định
-        //  Mathf.Sign(moveInput) trả về dáu của moveInput
-        if (moveInput != 0)
+        RotateCar();
+        if(Input.GetKey(KeyCode.LeftControl) && isGrounded && turnInput != 0)
         {
-            transform.Rotate(0, turnInput * turnSpeed * Time.deltaTime * Mathf.Sign(moveInput), 0);
+            isDrifting = true;
+            if(driftDirection == 0) driftDirection = Mathf.Sign(turnInput);
         }
-        if (turnInput != 0 && moveInput != 0)
+        else if(Input.GetKeyUp(KeyCode.LeftControl))
         {
-            // Cho phép xoay tại chỗ (tùy chọn)
-            transform.Rotate(0, turnInput * turnSpeed * Time.deltaTime, 0);
+            isDrifting = false;
+            driftDirection = 0;
         }
-        
-        // Cập nhật vị trí model bám theo sphere
-        carModel.position = sphereRB.transform.position - new Vector3(0, 0f, 0); // Offset xuống 1 chút
     }
 
     void FixedUpdate()
+    {
+        Move();
+
+    }
+
+    private void RotateCar()
+    {
+        moveInput = Input.GetAxis("Vertical");
+        turnInput = Input.GetAxis("Horizontal");
+
+        if(moveInput == 0) return;
+
+        float currentTurnSpeed = isDrifting ? (turnSpeed * 0.5f) : turnSpeed;
+        transform.Rotate(0, turnInput * currentTurnSpeed * Time.deltaTime * Mathf.Sign(moveInput),0);
+
+        // Debug.Log(moveInput);
+
+        // if(moveInput == 0){
+        //     Debug.Log("No Move Input");
+        //     return;
+        // }
+
+        if(isDrifting)
+        {
+            // Khi Drift: Model xoay thêm một góc (ví dụ 30 độ) về hướng drift
+            float targetAngle = driftDirection * driftSlipAngle;
+            // Dùng Lerp để xoay model mượt mà sang góc drift
+            Quaternion driftRot = Quaternion.Euler(0, targetAngle, 0);
+            carModel.localRotation = Quaternion.Lerp(carModel.localRotation, driftRot, Time.deltaTime * 5f);
+        }
+        else
+        {
+            // Khi KHÔNG Drift: Model quay về thẳng (0 độ)
+            carModel.localRotation = Quaternion.Lerp(carModel.localRotation, Quaternion.identity, Time.deltaTime * 5f);
+        }
+    }
+
+    private void Move()
     {
         // 3. Kiểm tra chạm đất (Ground Check)
         // Bắn Raycast từ tâm xe xuống dưới
@@ -69,4 +106,9 @@ public class CarController : MonoBehaviour
             sphereRB.AddForce(Vector3.down * gravityForce, ForceMode.Acceleration);
         }
     }
+
+    // private void Drift()
+    // {
+    //     float currenSpeed = isDrifting ? (turnInput * 0.5f) : turnInput;
+    // }
 }

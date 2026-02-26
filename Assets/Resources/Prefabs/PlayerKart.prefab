@@ -63,6 +63,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3279891891109883567}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5060294710860676722
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6190714744710186323}
+  m_Layer: 0
+  m_Name: ItemHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6190714744710186323
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5060294710860676722}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3279891891109883567}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5777003424930285425
 GameObject:
   m_ObjectHideFlags: 0
@@ -72,8 +103,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3279891891109883567}
-  - component: {fileID: 3424305016318090507}
+  - component: {fileID: 2995457293702623416}
   - component: {fileID: 978722735078880431}
+  - component: {fileID: 1990899029994968700}
+  - component: {fileID: 2534079555095823744}
+  - component: {fileID: 8170532703132143250}
+  - component: {fileID: 3956131557285048041}
+  - component: {fileID: 3584838345090771968}
   m_Layer: 0
   m_Name: PlayerKart
   m_TagString: Untagged
@@ -97,9 +133,10 @@ Transform:
   - {fileID: 3290026017273676013}
   - {fileID: 1952953885259151211}
   - {fileID: 7784661542019855080}
+  - {fileID: 6190714744710186323}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &3424305016318090507
+--- !u!54 &2995457293702623416
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -138,18 +175,90 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4760a008d02092444a42c2cecd989456, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1990899029994968700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5777003424930285425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b14833323984824bba9f7e58e8a2a30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ItemsHolder: {fileID: 5060294710860676722}
+  itemHolder1: {fileID: 0}
+  itemHolder2: {fileID: 0}
+  item1: {fileID: 0}
+  item2: {fileID: 0}
+--- !u!114 &2534079555095823744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5777003424930285425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 918a88e98e103d148b051e95be995a2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8170532703132143250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5777003424930285425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99c4430fcfec5db46976d583afddac37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultMoveSpeed: 50
   moveSpeed: 50
-  turnSpeed: 100
   groundDrag: 3
   airDrag: 0.1
   gravityForce: 10
-  steerForce: 50
-  driftSlipAngle: 30
-  carModel: {fileID: 7784661542019855080}
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  sphereRB: {fileID: 3424305016318090507}
+  sphereRB: {fileID: 2995457293702623416}
+  isGrounded: 0
+--- !u!114 &3956131557285048041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5777003424930285425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 957a9b65e6ad0e14ea3593ef47f43de6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  steerForce: 50
+  maxBoostCharge: 100
+  chargeRate: 25
+  currentBoostCharge: 0
+  isDrifting: 0
+--- !u!114 &3584838345090771968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5777003424930285425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ff4cc7a5f9ccf64e97da7edbac3557d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  driftSlipAngle: 30
+  turnSpeed: 100
+  carModel: {fileID: 7784661542019855080}
+  sphereRB: {fileID: 2995457293702623416}
 --- !u!1 &6801873521369798444
 GameObject:
   m_ObjectHideFlags: 0

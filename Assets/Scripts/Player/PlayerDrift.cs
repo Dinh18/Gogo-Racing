@@ -9,9 +9,10 @@ public class PlayerDrift : MonoBehaviour
     [SerializeField]private float currentBoostCharge = 0f;
     public bool isDrifting = false;
     private float driftDirection = 0;
+    [SerializeField]private bool canBoost = false;
     // private bool isGrounded;
 
-    public void HandleInput(float turnInput, bool isDrifting, bool isGrounded)
+    public void HandleInput(float turnInput, bool isDrifting, bool isBoosting, bool isGrounded, PlayerMovement playerMovement)
     {
         // Debug.Log("Handle Drift Input: " + turnInput + ", " + isDrifting + ", " + isGrounded);
 
@@ -24,6 +25,13 @@ public class PlayerDrift : MonoBehaviour
         {
             this.isDrifting = false;
             driftDirection = 0;
+        }
+        // Debug.Log(canBoost + ", " + isBoosting);
+        if(canBoost && isBoosting)
+        {
+            canBoost = false;
+            currentBoostCharge = 0f;
+            playerMovement.Accelerate(1.5f, 2f);
         }
     }
 
@@ -38,9 +46,10 @@ public class PlayerDrift : MonoBehaviour
             }
             else
             {
-                GameObject nitroItemPrefab = Resources.Load<GameObject>(Constants.NITRO_ITEM_PREFAB_PATH);
-                Instantiate(nitroItemPrefab, itemController.ItemsHolder.transform);
-                itemController.AddItem(nitroItemPrefab);
+                // GameObject nitroItemPrefab = Resources.Load<GameObject>(Constants.NITRO_ITEM_PREFAB_PATH);
+                // Instantiate(nitroItemPrefab, itemController.ItemsHolder.transform);
+                // itemController.AddItem(nitroItemPrefab);
+                canBoost = true;
             }
         }
     }

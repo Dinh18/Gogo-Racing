@@ -5,17 +5,16 @@ public class NitroItem : ItemBase
 {
     public override void UseItem(GameObject target)
     {
-        StartCoroutine(ActiveNitroRoutine(target));
+        ActiveNitro(target);
+        Destroy(this.gameObject);
     }
 
-    private IEnumerator ActiveNitroRoutine(GameObject target)
+    private void ActiveNitro(GameObject target)
     {
         PlayerMovement playerMovement = target.GetComponent<PlayerMovement>();
         if(playerMovement != null)
         {
-            playerMovement.SetMoveSpeed(1.5f);
-            yield return new WaitForSeconds(2f); // Wait for 5 seconds
-            playerMovement.SetMoveSpeed(1f); // Reset to default speed
+            playerMovement.Accelerate(1.5f, 2f); // 1.5x speed for 2 seconds
         }
     }
 }

@@ -28,7 +28,7 @@ public class CarController : MonoBehaviour
     {
         if(playerDrift != null)
         {
-            playerDrift.HandleInput(carInput.TurnInput, carInput.IsDrifting, playerMovement.isGrounded);
+            playerDrift.HandleInput(carInput.TurnInput, carInput.IsDrifting, carInput.IsBoosting, playerMovement.isGrounded, playerMovement);
             playerDrift.HandleDriftCharge(itemController);
         }
         if(carInput.IsUsingItem)

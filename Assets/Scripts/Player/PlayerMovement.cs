@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -13,9 +14,16 @@ public class PlayerMovement : MonoBehaviour
     
     private float moveInput;
     public bool isGrounded;
-    public void SetMoveSpeed(float time)
+    public void Accelerate(float times, float seconds)
     {
-        moveSpeed = defaultMoveSpeed * time;
+        moveSpeed = defaultMoveSpeed * times;
+        StartCoroutine(ResetMoveSpeed(seconds));
+    }
+
+    private IEnumerator ResetMoveSpeed(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        moveSpeed = defaultMoveSpeed;
     }
 
     public void Move(ICarInput inputController)

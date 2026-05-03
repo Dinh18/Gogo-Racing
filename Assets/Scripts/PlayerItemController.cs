@@ -23,11 +23,11 @@ public class PlayerItemController : MonoBehaviour
     {
         if(item1 == null)
         {
-            item1 = Instantiate(itemPrefab, itemHolder1.transform);
+            item1 = Instantiate(itemPrefab, ItemsHolder.transform);
         }
         else if(item2 == null)
         {
-            item2 = Instantiate(itemPrefab, itemHolder2.transform);
+            item2 = Instantiate(itemPrefab, ItemsHolder.transform);
         }
     }
 
@@ -38,7 +38,7 @@ public class PlayerItemController : MonoBehaviour
             ItemBase item = item1.GetComponent<ItemBase>();
             if(item != null)
             {
-                item.UseItem(this.gameObject);
+                item.UseItem();
                 Destroy(item1);
                 item1 = null;
             }

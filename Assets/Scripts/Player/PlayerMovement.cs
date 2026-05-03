@@ -1,23 +1,29 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Setting")]
-    [SerializeField] private float defaultMoveSpeed = 50f;
+    [SerializeField] public float defaultMoveSpeed = 50f;
     [SerializeField] private float moveSpeed = 50f;
     [SerializeField] private float groundDrag = 3f;
     [SerializeField] private float airDrag = 0.1f;
     [SerializeField] private float gravityForce = 10f;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Rigidbody sphereRB;
-    
+    public float currSpeed => sphereRB.linearVelocity.magnitude;
     private float moveInput;
+    public bool isSpinning = false;
     public bool isGrounded;
-    public void Accelerate(float times, float seconds)
+    public float amountAccelerate{get; private set;} = 1.5f;
+    private float timeAccelerate = 2.8f;
+    public static event Action OnStartBoost;
+    public void Accelerate()
     {
-        moveSpeed = defaultMoveSpeed * times;
-        StartCoroutine(ResetMoveSpeed(seconds));
+        moveSpeed = amountAccelerate * defaultMoveSpeed;
+        OnStartBoost?.Invoke();
+        StartCoroutine(ResetMoveSpeed(timeAccelerate));
     }
 
     private IEnumerator ResetMoveSpeed(float seconds)
@@ -27,24 +33,26 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public void Move(ICarInput inputController)
-    
     {
         moveInput = inputController.MoveInput;
         // 3. Kiểm tra chạm đất (Ground Check)
-        // Bắn Raycast từ tâm xe xuống dưới
-        isGrounded = Physics.Raycast(transform.position, -transform.up, out RaycastHit hit, 1.2f, groundLayer);
+        // Bắt đầu Raycast từ vị trí cao hơn 1 chút để tránh việc tâm xe sát đất quá không bắn được
+        Vector3 rayOrigin = transform.position + transform.up * 0.5f;
+        float rayDistance = 1.5f;
+        isGrounded = Physics.Raycast(rayOrigin, -transform.up, out RaycastHit hit, rayDistance, groundLayer);
+
+        // Debug vẽ tia Raycast để thấy được trong Scene
+        Debug.DrawRay(rayOrigin, -transform.up * rayDistance, isGrounded ? Color.green : Color.red);
 
         // 4. Xử lý di chuyển
         if (isGrounded)
         {
-            // Debug.Log("Is Grounded");
             sphereRB.linearDamping = groundDrag;
-
-            // Debug.Log(moveInput);
 
             if (moveInput != 0)
             {
-                // Chỉ dùng AddForce để đẩy xe đi về phía trước của Model
+                // Log để kiểm tra xem lực có đang được add không
+                // Debug.Log($"[Movement] Adding Force: {moveInput * moveSpeed} to {gameObject.name}");
                 sphereRB.AddForce(transform.forward * moveInput * moveSpeed, ForceMode.Acceleration);
             }
             
@@ -54,8 +62,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
+            // Debug.Log($"[Movement] {gameObject.name} is NOT grounded!");
             sphereRB.linearDamping = airDrag;
-            // Thêm trọng lực thủ công để xe rơi nhanh hơn (cảm giác đầm hơn)
             sphereRB.AddForce(Vector3.down * gravityForce, ForceMode.Acceleration);
         }
     }

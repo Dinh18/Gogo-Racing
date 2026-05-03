@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -37,12 +38,27 @@ public class CarController : MonoBehaviour
         }
         if(carVisuals != null)
         {
-            carVisuals.HandleVisualRotation(carInput.MoveInput, carInput.TurnInput, playerDrift.isDrifting, playerDrift.GetDiftDirection());
+            carVisuals.HandleVisualRotation(carInput.MoveInput, carInput.TurnInput, carInput.IsDrifting, playerDrift.GetDiftDirection(), playerMovement.isSpinning);
         }
     }
     void FixedUpdate()
     {
-        playerMovement.Move(carInput);
+        if(playerMovement != null) playerMovement.Move(carInput);
+    }
+
+    public void HitBanana(float spinDuration)
+    {
+        if(playerMovement != null && !playerMovement.isSpinning)
+        {
+            StartCoroutine(SpinPOutRoutine(spinDuration));
+        }
+    }
+
+    private IEnumerator SpinPOutRoutine(float duration)
+    {
+        playerMovement.isSpinning = true;
+        yield return new WaitForSeconds(duration);
+        playerMovement.isSpinning = false;
     }
 
 

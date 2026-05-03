@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerDrift : MonoBehaviour
@@ -10,6 +11,7 @@ public class PlayerDrift : MonoBehaviour
     public bool isDrifting = false;
     private float driftDirection = 0;
     [SerializeField]private bool canBoost = false;
+    public static event Action<bool> OnDriftStateChange;
     // private bool isGrounded;
 
     public void HandleInput(float turnInput, bool isDrifting, bool isBoosting, bool isGrounded, PlayerMovement playerMovement)
@@ -19,11 +21,13 @@ public class PlayerDrift : MonoBehaviour
         if(isDrifting && isGrounded && turnInput != 0)
         {
             this.isDrifting = true;
+            OnDriftStateChange?.Invoke(this.isDrifting);
             if(driftDirection == 0) driftDirection = Mathf.Sign(turnInput);
         }
         else if(!isDrifting || !isGrounded || turnInput == 0)
         {
             this.isDrifting = false;
+            OnDriftStateChange?.Invoke(this.isDrifting);
             driftDirection = 0;
         }
         // Debug.Log(canBoost + ", " + isBoosting);
@@ -31,7 +35,7 @@ public class PlayerDrift : MonoBehaviour
         {
             canBoost = false;
             currentBoostCharge = 0f;
-            playerMovement.Accelerate(1.5f, 2f);
+            playerMovement.Accelerate();
         }
     }
 

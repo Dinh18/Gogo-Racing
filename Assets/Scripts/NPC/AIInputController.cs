@@ -21,16 +21,26 @@ public class AIInputController : MonoBehaviour, ICarInput
     public float stuckTimeLimit = 2f; // Thời gian kẹt tối đa trước khi lùi
     public float reverseTime = 1.5f; // Thời gian lùi xe
 
+    [Header("AI Khôn & Vật Phẩm")]
+    public float wanderSpeed = 0.5f; // Tốc độ lạng lách qua lại
+    private float wanderOffset = 0f;
+    private float noiseOffset; // Tránh việc tất cả xe lượn cùng một nhịp
+    private PlayerItemController itemController;
+    private float itemUseTimer = 0f;
+    private bool hasItem = false;
+
     private Rigidbody rb;
+    private CarProgress carProgress;
     private float stuckTimer = 0f;
     private float reversingTimer = 0f;
+    private float finishedTimer = 0f;
+    [SerializeField] private float extraDriveTime = 2f; // Thời gian cho AI chạy thêm sau khi về đích
 
     public float MoveInput { get; set; }
     public float TurnInput { get; set; }
     public bool IsDrifting { get; set; }
-    public bool IsBoosting { get; set; }
     public bool IsUsingItem { get; set; }
-
+    public bool isStop;
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -39,17 +49,48 @@ public class AIInputController : MonoBehaviour, ICarInput
         {
             trackSpline = Object.FindFirstObjectByType<SplineContainer>();
         }
+
+        if(carProgress == null)
+        {
+            carProgress = this.GetComponent<CarProgress>();
+        }
+
+        noiseOffset = UnityEngine.Random.Range(0f, 1000f);
+        itemController = GetComponent<PlayerItemController>();
+        isStop = false;
     }
 
     private float logTimer = 0f;
 
     void Update()
     {
-        if (trackSpline == null || trackSpline.Splines == null || trackSpline.Splines.Count == 0)
+        if (trackSpline == null || trackSpline.Splines == null || trackSpline.Splines.Count == 0 || isStop)
         {
             MoveInput = 0;
             TurnInput = 0;
-            if (trackSpline != null) Debug.LogWarning($"[AI] Spline rỗng hoặc lỗi!");
+            IsDrifting = false;
+            IsUsingItem = false;
+            Debug.LogWarning($"[AI] Spline rỗng hoặc lỗi!");
+            return;
+        }
+
+        if (carProgress == null) carProgress = this.GetComponent<CarProgress>();
+
+        bool isCarFinished = carProgress != null && carProgress.IsFinished();
+        if (isCarFinished)
+        {
+            finishedTimer += Time.deltaTime;
+        }
+
+        RaceState currState = RaceManager.Instance.GetCurrState();
+        bool isGameStateAllowingInput = (currState == RaceState.Racing);
+
+        if (!isGameStateAllowingInput || (isCarFinished && finishedTimer >= extraDriveTime))
+        {
+            MoveInput = 0;
+            TurnInput = 0;
+            IsDrifting = false;
+            IsUsingItem = false;
             return;
         }
 
@@ -63,12 +104,13 @@ public class AIInputController : MonoBehaviour, ICarInput
         }
 
         DriveAlongSpline();
+        HandleItemUsage();
 
         // In log mỗi 1 giây để không bị trôi Console
         logTimer += Time.deltaTime;
         if (logTimer >= 1f)
         {
-            bool grounded = GetComponent<PlayerMovement>().isGrounded;
+            bool grounded = GetComponent<CarMovement>().isGrounded;
             Debug.Log($"[AI {gameObject.name}] Speed: {rb.linearVelocity.magnitude:F1} | Move: {MoveInput:F2} | Turn: {TurnInput:F2} | Grounded: {grounded}");
             logTimer = 0f;
         }
@@ -132,9 +174,20 @@ public class AIInputController : MonoBehaviour, ICarInput
         Vector3 futureTangent = trackSpline.transform.TransformDirection(futureLocalTangent).normalized;
         float futureCurveAngle = Vector3.Angle(currentTangent, futureTangent);
 
-        // 4. Target Point (FIX: BỎ CẮT GÓC, ÔM GIỮA ĐƯỜNG CHO AN TOÀN)
+        // 4. Target Point (VỚI WANDER OFFSET ĐỂ XE LƯỢN TỰ NHIÊN)
         trackSpline.Spline.Evaluate(targetT, out float3 targetLocalPos, out float3 targetLocalTangent, out _);
+        
+        // Dùng Perlin Noise để tạo dao động từ -1 đến 1
+        float perlin = Mathf.PerlinNoise(Time.time * wanderSpeed * 0.5f, noiseOffset);
+        float wanderNormalized = (perlin - 0.5f) * 2f; 
+        // Giảm xuống còn 15-20% độ rộng đường để xe an toàn hơn, không ra sát lề
+        wanderOffset = wanderNormalized * (trackWidth * 0.2f); 
+
+        Vector3 targetTangentStr = trackSpline.transform.TransformDirection(targetLocalTangent).normalized;
+        Vector3 targetRight = Vector3.Cross(targetTangentStr, Vector3.up).normalized;
+
         Vector3 targetWaypoint = trackSpline.transform.TransformPoint(targetLocalPos);
+        targetWaypoint += targetRight * wanderOffset;
         
         // 5. --- NÉ TƯỜNG ĐỘNG (SPEED-BASED WHISKERS) ---
         float wallAvoidanceSteer = 0f;
@@ -193,12 +246,38 @@ public class AIInputController : MonoBehaviour, ICarInput
 
         // --- DRIFT & BOOST ---
         IsDrifting = (absAngle > driftAngleThreshold && currentSpeed > 8f);
-        IsBoosting = (absAngle < 5f && futureCurveAngle < 5f && MoveInput > 0.9f);
-        IsUsingItem = false;
+        // IsUsingItem được xử lý độc lập trong HandleItemUsage()
 
         // Debug visualization (Bật tab Scene lên để xem tia né tường hoạt động)
         Debug.DrawLine(transform.position, targetWaypoint, Color.green);
         Debug.DrawRay(rayOrigin, dirFrontRight * dynamicRayDist, Color.yellow);
         Debug.DrawRay(rayOrigin, dirFrontLeft * dynamicRayDist, Color.yellow);
+    }
+
+    private void HandleItemUsage()
+    {
+        IsUsingItem = false;
+        if (itemController != null)
+        {
+            if (itemController.item1 != null) // Có đồ trong túi
+            {
+                if (!hasItem)
+                {
+                    hasItem = true;
+                    itemUseTimer = UnityEngine.Random.Range(1f, 3f); // Ngâm đồ 1-3s
+                }
+                
+                itemUseTimer -= Time.deltaTime;
+                if (itemUseTimer <= 0f)
+                {
+                    IsUsingItem = true; // Kích hoạt UseItem trong frame này
+                    hasItem = false; // Ngăn không cho gán lại timer cho đến khi nhặt đồ mới
+                }
+            }
+            else
+            {
+                hasItem = false; // Đã xài xong hoặc chưa có đồ
+            }
+        }
     }
 }

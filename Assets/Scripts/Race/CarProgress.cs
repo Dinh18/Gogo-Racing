@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Splines;
 using Unity.Mathematics;
+using System;
 
 public class CarProgress : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class CarProgress : MonoBehaviour
     public int currentLap = 1;
     public float splineProgress = 0f; // Vị trí trên track (0.0 đến 1.0)
     public float totalDistance = 0f;  // Dùng để xếp hạng
+    public float totalTime = 0f;
 
     [Header("References")]
     public SplineContainer trackSpline;
@@ -17,12 +19,16 @@ public class CarProgress : MonoBehaviour
     private float splineLength = 0f;
 
     public bool HasFinished { get; private set; } = false;
+    public bool isEliminated = false;
 
-    void Start()
+    public event Action<int> FinishedLap;
+    public static event Action FinisedAllLap;
+
+    public void Setup()
     {
         if (trackSpline == null)
         {
-            trackSpline = Object.FindFirstObjectByType<SplineContainer>();
+            trackSpline = GameObject.FindFirstObjectByType<SplineContainer>();
         }
 
         if (trackSpline != null)
@@ -33,7 +39,7 @@ public class CarProgress : MonoBehaviour
 
     void Update()
     {
-        if (trackSpline == null || HasFinished) return;
+        if (trackSpline == null || HasFinished || RaceManager.Instance.GetCurrState() != RaceState.Racing) return;
 
         UpdateProgress();
     }
@@ -59,6 +65,7 @@ public class CarProgress : MonoBehaviour
             if (passedHalfway) // Đảm bảo đã chạy hết vòng, không phải đứng tại vạch đích lùi rồi tiến
             {
                 currentLap++;
+                FinishedLap?.Invoke(currentLap);
                 passedHalfway = false; // Reset cho vòng tiếp theo
             }
         }
@@ -69,14 +76,15 @@ public class CarProgress : MonoBehaviour
         // Tính bằng: (Số vòng đã hoàn thành * độ dài vòng) + Quãng đường vòng hiện tại
         int completedLaps = currentLap - 1;
         totalDistance = (completedLaps * splineLength) + (splineProgress * splineLength);
+        totalTime += Time.deltaTime;
     }
 
     public void FinishRace()
     {
         HasFinished = true;
-        
-        // Tắt AI hoặc Input nếu muốn xe tự phanh lại
-        var aiController = GetComponent<AIInputController>();
-        if (aiController != null) aiController.enabled = false;
+        FinisedAllLap?.Invoke();
+        // Chúng ta không tắt AIController nữa, để nó tự set các input về 0 trong hàm Update
     }
+
+    public bool IsFinished() => HasFinished; 
 }

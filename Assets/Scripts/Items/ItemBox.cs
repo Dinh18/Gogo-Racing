@@ -3,20 +3,26 @@ using UnityEngine;
 
 public class ItemBox : MonoBehaviour
 {
-    public List<GameObject> items;
-    public GameObject item;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public ItemIngameDataSO item;
+    
     void Start()
     {
-        int randomIndex = Random.Range(0, items.Count);
-        item = items[randomIndex];
+        if (DataManager.Instance != null && DataManager.Instance.GetAllItems().Length > 0)
+        {
+            int randomIndex = Random.Range(0, DataManager.Instance.GetAllItems().Length);
+            item = DataManager.Instance.GetAllItems()[randomIndex];
+        }
     }
+
     void OnTriggerEnter(Collider other)
     {
         PlayerItemController itemController = other.GetComponentInParent<PlayerItemController>();
         if (itemController != null)
         {
-            itemController.AddItem(item);
+            if (item != null)
+            {
+                itemController.AddItem(item);
+            }
             Destroy(gameObject);
         }
     }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e68f4e7862815df43b3bfd95ba68a704, type: 3}
+  m_Name: Kart_3
+  m_EditorClassIdentifier: 
+  itemID: 2
+  itemName: Kart 3
+  avatarSprite: {fileID: 21300000, guid: ed1874232f0696545a3a8bde1e2452ce, type: 3}
+  mainMenuPrefab: {fileID: 5722787344318480983, guid: ade32a8c431e42c4d84452f13237e61b, type: 3}
+  ingamePrefab: {fileID: 3364901705889506107, guid: 89d4ba8958a4ae24a9a0d8bd4c65a67b, type: 3}
+  speedStat: 160
+  accelerationStat: 60
+  handlingStat: 60
+  driftStat: 60

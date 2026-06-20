@@ -5,17 +5,18 @@ public class KartVFXManager : MonoBehaviour
 {
     [Header("Hiệu ứng hạt")]
     [SerializeField] ParticleSystem[] sandDustParticles;
-    [SerializeField] private PlayerMovement carMovement;
+    [SerializeField] private CarMovement carMovement;
     [Header("Hiệu ứng đuôi")]
     [SerializeField] private TrailRenderer[] skidMarks;
+    [SerializeField] private CarDrift playerDrift;
     private float maxEmissionRate = 100f;
     void OnEnable()
     {
-        PlayerDrift.OnDriftStateChange += HandleDrift;
+        if(playerDrift != null) playerDrift.OnDriftStateChange += HandleDrift;
     }
     void OnDisable()
     {
-        PlayerDrift.OnDriftStateChange -= HandleDrift;
+        if(playerDrift != null) playerDrift.OnDriftStateChange -= HandleDrift;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -26,7 +27,7 @@ public class KartVFXManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        UpdateSandDust(carMovement.currSpeed, carMovement.defaultMoveSpeed * carMovement.amountAccelerate);
+        UpdateSandDust(carMovement.currSpeed, carMovement.GetDefaultMoveSpeed() * carMovement.amountAccelerate);
     }
 
     private void UpdateSandDust(float currSpeed, float maxSpeed)
@@ -50,6 +51,7 @@ public class KartVFXManager : MonoBehaviour
     }
     private void HandleDrift(bool isDrifting)
     {
+        // Debug.Log("Is Drift");
         foreach (TrailRenderer trail in skidMarks)
         {
             trail.emitting = isDrifting;

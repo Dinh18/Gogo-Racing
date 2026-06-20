@@ -3,11 +3,12 @@ using UnityEngine;
 public class CarAudioController : MonoBehaviour
 {
     [Header("Liên kết")]
-    public PlayerMovement carMovement;
+    [SerializeField] private CarMovement carMovement;
+    [SerializeField] private CarDrift playerDrift;
+    [Header("Audio Sources")]
     [SerializeField] private AudioSource engineAudioSource;
     [SerializeField] private AudioSource driftAudioSource;
     [SerializeField] private AudioSource boostAudioSource;
-
     [Header("Cài đặt Âm lượng (Volume)")]
     public float minVolume = 0.3f; // Âm lượng lúc xe đứng im (Garanti)
     public float maxVolume = 1.0f; // Âm lượng lúc lút ga
@@ -18,13 +19,13 @@ public class CarAudioController : MonoBehaviour
 
     void OnEnable()
     {
-        PlayerDrift.OnDriftStateChange += PlayDriftAudio;
-        PlayerMovement.OnStartBoost += PlayBoostAudio;
+        if(playerDrift != null) playerDrift.OnDriftStateChange += PlayDriftAudio;
+        // if(carMovement != null) carMovement.OnStartBoost += PlayBoostAudio;
     }
     void OnDisable()
     {
-        PlayerDrift.OnDriftStateChange -= PlayDriftAudio;
-        PlayerMovement.OnStartBoost -= PlayBoostAudio;
+        if(playerDrift != null) playerDrift.OnDriftStateChange -= PlayDriftAudio;
+        if(carMovement != null) carMovement.OnStartBoost -= PlayBoostAudio;
 
     }
 
@@ -58,8 +59,8 @@ public class CarAudioController : MonoBehaviour
         }
         if(boostAudioSource.isPlaying)
         {
-            float currSpeed = carMovement.currSpeed - carMovement.defaultMoveSpeed;
-            float maxSpeed = carMovement.defaultMoveSpeed * carMovement.amountAccelerate - carMovement.defaultMoveSpeed;
+            float currSpeed = carMovement.currSpeed - carMovement.GetDefaultMoveSpeed();
+            float maxSpeed = carMovement.GetDefaultMoveSpeed() * carMovement.amountAccelerate - carMovement.GetDefaultMoveSpeed();
             float speedRatio;
             if(currSpeed <= 0)
             {
@@ -79,7 +80,7 @@ public class CarAudioController : MonoBehaviour
         // Lấy vận tốc hiện tại từ script vật lý
         if (carMovement == null) return;
         float currentSpeed = carMovement.currSpeed;
-        float maxSpeed = carMovement.defaultMoveSpeed * carMovement.amountAccelerate;
+        float maxSpeed = (carMovement.GetDefaultMoveSpeed() * carMovement.amountAccelerate)/carMovement.GetGroundDrag();
 
         // Tính tỷ lệ % tốc độ (từ 0.0 đến 1.0)
         float speedRatio = Mathf.Clamp01(currentSpeed / maxSpeed);

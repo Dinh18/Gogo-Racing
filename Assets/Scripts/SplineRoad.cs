@@ -21,6 +21,7 @@ public class SplineRoad : MonoBehaviour
     [Header("Wall Settings")]
     public bool generateWalls = true;
     public float wallHeight = 1.5f;
+    public float wallThickness = 0.5f;
 
     [Header("UV Settings")]
     public float roadTextureTilingY = 10f; 
@@ -104,7 +105,7 @@ public class SplineRoad : MonoBehaviour
 
         float splineLength = spline.GetLength();
         int segments = Mathf.CeilToInt(splineLength / distancePerSegment);
-        int vertsPerSegment = generateWalls ? 6 : 2;
+        int vertsPerSegment = generateWalls ? 10 : 2;
 
         for (int i = 0; i <= segments; i++)
         {
@@ -143,21 +144,44 @@ public class SplineRoad : MonoBehaviour
 
             if (generateWalls)
             {
-                Vector3 pointLeftTop = pointLeft + upVec * wallHeight;
-                Vector3 pointRightTop = pointRight + upVec * wallHeight;
+                // Left Wall
+                Vector3 leftInnerBottom = pointLeft;
+                Vector3 leftInnerTop = pointLeft + upVec * wallHeight;
+                Vector3 leftOuterTop = leftInnerTop - right * wallThickness;
+                Vector3 leftOuterBottom = leftInnerBottom - right * wallThickness;
 
-                vertices.Add(pointLeft);
-                vertices.Add(pointLeftTop);
+                // Right Wall
+                Vector3 rightInnerBottom = pointRight;
+                Vector3 rightInnerTop = pointRight + upVec * wallHeight;
+                Vector3 rightOuterTop = rightInnerTop + right * wallThickness;
+                Vector3 rightOuterBottom = rightInnerBottom + right * wallThickness;
+
+                vertices.Add(leftInnerBottom);
+                vertices.Add(leftInnerTop);
+                vertices.Add(leftOuterTop);
+                vertices.Add(leftOuterBottom);
                 
-                vertices.Add(pointRight);
-                vertices.Add(pointRightTop);
+                vertices.Add(rightInnerBottom);
+                vertices.Add(rightInnerTop);
+                vertices.Add(rightOuterTop);
+                vertices.Add(rightOuterBottom);
 
                 float wallV = currentDistance / wallTextureTilingY;
+                float totalWallProfile = wallHeight * 2f + wallThickness;
+                float u1 = totalWallProfile > 0f ? wallHeight / totalWallProfile : 0f;
+                float u2 = totalWallProfile > 0f ? (wallHeight + wallThickness) / totalWallProfile : 0f;
                 
-                uvs.Add(new Vector2(0, wallV));
-                uvs.Add(new Vector2(1, wallV));
-                uvs.Add(new Vector2(0, wallV));
-                uvs.Add(new Vector2(1, wallV));
+                // UVs for left wall
+                uvs.Add(new Vector2(0f, wallV));
+                uvs.Add(new Vector2(u1, wallV));
+                uvs.Add(new Vector2(u2, wallV));
+                uvs.Add(new Vector2(1f, wallV));
+
+                // UVs for right wall
+                uvs.Add(new Vector2(0f, wallV));
+                uvs.Add(new Vector2(u1, wallV));
+                uvs.Add(new Vector2(u2, wallV));
+                uvs.Add(new Vector2(1f, wallV));
             }
         }
 
@@ -171,11 +195,31 @@ public class SplineRoad : MonoBehaviour
 
             if (generateWalls)
             {
+                // Left Wall
+                // Inner Quad
                 wallTriangles.Add(root + 2); wallTriangles.Add(root + 3); wallTriangles.Add(next + 2);
                 wallTriangles.Add(root + 3); wallTriangles.Add(next + 3); wallTriangles.Add(next + 2);
 
-                wallTriangles.Add(root + 4); wallTriangles.Add(next + 4); wallTriangles.Add(root + 5);
-                wallTriangles.Add(root + 5); wallTriangles.Add(next + 4); wallTriangles.Add(next + 5);
+                // Top Quad
+                wallTriangles.Add(root + 3); wallTriangles.Add(root + 4); wallTriangles.Add(next + 3);
+                wallTriangles.Add(root + 4); wallTriangles.Add(next + 4); wallTriangles.Add(next + 3);
+
+                // Outer Quad
+                wallTriangles.Add(root + 4); wallTriangles.Add(root + 5); wallTriangles.Add(next + 4);
+                wallTriangles.Add(root + 5); wallTriangles.Add(next + 5); wallTriangles.Add(next + 4);
+
+                // Right Wall
+                // Inner Quad
+                wallTriangles.Add(root + 6); wallTriangles.Add(next + 6); wallTriangles.Add(root + 7);
+                wallTriangles.Add(root + 7); wallTriangles.Add(next + 6); wallTriangles.Add(next + 7);
+
+                // Top Quad
+                wallTriangles.Add(root + 7); wallTriangles.Add(next + 7); wallTriangles.Add(root + 8);
+                wallTriangles.Add(root + 8); wallTriangles.Add(next + 7); wallTriangles.Add(next + 8);
+
+                // Outer Quad
+                wallTriangles.Add(root + 8); wallTriangles.Add(next + 8); wallTriangles.Add(root + 9);
+                wallTriangles.Add(root + 9); wallTriangles.Add(next + 8); wallTriangles.Add(next + 9);
             }
         }
 
